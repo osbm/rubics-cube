@@ -12,10 +12,19 @@ class Pipes:
     intersection = "╬"
     vertical_right = "╠"
     vertical_left = "╣"
+    horizontal_top = "╦"
+    horizontal_bottom = "╩"
 
 
 class Cube:
-    def __init__(self, size=3, scrambled=False, seed=42, show_letter=True, add_reverse_and_double_moves=False):
+    def __init__(
+        self,
+        size=3,
+        scrambled=False,
+        seed=42,
+        show_letter=True,
+        add_reverse_and_double_moves=False,
+    ):
         self.size = size
         self.seed = seed
         self.show_letter = show_letter
@@ -32,8 +41,16 @@ class Cube:
             "x": "\033[38;5;255m",
             "reset": "\033[0m",
         }
-        self.colors = ["g", "y", "r", "w", "b", "o"]
-
+        self.colors = ["w", "o", "g", "r", "b", "y"]
+        self.face_to_index = {
+            "U": 0,
+            "L": 1,
+            "F": 2,
+            "R": 3,
+            "B": 4,
+            "D": 5,
+        }
+        self.faces = self.face_to_index.keys()
         self.combinations = self.generate_solved_cube(size)
         if scrambled:
             self.scramble()
@@ -61,7 +78,7 @@ class Cube:
         # see if move is valid
         if move not in self.get_possible_moves():
             raise ValueError("Invalid move")
-        
+
         if move[-1] == "'":
             self.make_move(move[:-1])
             self.make_move(move[:-1])
@@ -70,18 +87,33 @@ class Cube:
             self.make_move(move[:-1])
             self.make_move(move[:-1])
 
-
         # first lets deal with the rotational moves
-        if move == "x":
-            pass
-            
+        if move in self.faces:
+            self._rotate_face(move, -1)
+            # also we should rotate the slice
+            if move == "F":
+                ...
+
         elif move == "y":
             self._rotate_face(0, 0)
 
+    def _rotate_face(self, face: str, direction: int):
+        """
+        Rotate a face of the cube
+
+        Arguments:
+            face: can be F, R, U, L, B, D
+            direction: 1 for clockwise, -1 for counter clockwise
+        """
+        # print(self.combinations.shape)
+        face_idx = self.face_to_index[face]
+        face = self.combinations[face_idx]
+        # lets use numpy to rotate the face 90 degrees
+        rotated_face = np.rot90(face.reshape(self.size, self.size), direction)
+        self.combinations[face_idx] = rotated_face.reshape(self.size**2)
+
         
-    def _rotate_face(self, depth, axis, direction=1):
-        self.combinations = np.rot90(self.combinations, direction, (axis, depth))
-            
+        
 
     def get_possible_moves(self):
         # get moves that are possible for any sized cube
@@ -132,7 +164,9 @@ class Cube:
         print(
             " " * (self.size * 2 + 1),
             Pipes.top_left,
-            Pipes.horizontal * (self.size * 2),
+            Pipes.horizontal,
+            "U",
+            Pipes.horizontal * (self.size * 2 - 2),
             Pipes.top_right,
             sep="",
         )
@@ -147,52 +181,45 @@ class Cube:
         # draw 3 faces of cube next to each other
         print(
             Pipes.top_left,
-            Pipes.horizontal * (self.size * 2),
+            Pipes.horizontal,
+            "L",
+            Pipes.horizontal * (self.size * 2 - 2),
             Pipes.intersection,
-            Pipes.horizontal * (self.size * 2),
+            Pipes.horizontal,
+            "F",
+            Pipes.horizontal * (self.size * 2 - 2),
             Pipes.intersection,
-            Pipes.horizontal * (self.size * 2),
+            Pipes.horizontal,
+            "R",
+            Pipes.horizontal * (self.size * 2 - 2),
+            Pipes.horizontal_top,
+            Pipes.horizontal,
+            "B",
+            Pipes.horizontal * (self.size * 2 - 2),
             Pipes.top_right,
             sep="",
         )
 
         for i in range(self.size):
-            print(Pipes.vertical, end="")
-            for j in range(self.size):
-                self._print_letter(self.combinations[1][i * self.size + j])
+            for j in range(1, 5):
+                print(Pipes.vertical, end="")
+                for k in range(self.size):
+                    self._print_letter(self.combinations[j][i * self.size + k])
 
-            print(Pipes.vertical, end="")
-            for j in range(self.size):
-                self._print_letter(self.combinations[2][i * self.size + j])
 
-            print(Pipes.vertical, end="")
-            for j in range(self.size):
-                self._print_letter(self.combinations[3][i * self.size + j])
             print(Pipes.vertical)
-
         print(
             Pipes.bottom_left,
             Pipes.horizontal * (self.size * 2),
             Pipes.intersection,
-            Pipes.horizontal * (self.size * 2),
+            Pipes.horizontal,
+            "D",
+            Pipes.horizontal * (self.size * 2 - 2),
             Pipes.intersection,
             Pipes.horizontal * (self.size * 2),
-            Pipes.bottom_right,
-            sep="",
-        )
-
-        for i in range(self.size):
-            print(" " * (self.size * 2 + 1), end="")
-            print(Pipes.vertical, end="")
-            for j in range(self.size):
-                self._print_letter(self.combinations[4][i * self.size + j])
-            print(Pipes.vertical)
-
-        print(
-            " " * (self.size * 2 + 1),
-            Pipes.vertical_right,
+            Pipes.horizontal_bottom,
             Pipes.horizontal * (self.size * 2),
-            Pipes.vertical_left,
+            Pipes.bottom_right,
             sep="",
         )
 
@@ -211,19 +238,11 @@ class Cube:
             sep="",
         )
 
-        print ("  F ")
-        print ("D R U")
-        print ("  B ")
-        print ("  L ")
-
-
-
-
 if __name__ == "__main__":
     cube = Cube(size=5, show_letter=True, scrambled=False)
+
+    print("All possible moves:", len(cube.get_possible_moves()))
+
     cube.print()
-
-    print(len(cube.get_possible_moves()))
-
-    cube.make_move("x")
+    cube.make_move("F")
     cube.print()
