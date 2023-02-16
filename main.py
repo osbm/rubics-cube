@@ -50,7 +50,7 @@ class Cube:
             "B": 4,
             "D": 5,
         }
-        self.faces = self.face_to_index.keys()
+        self.faces = list(self.face_to_index.keys())
         self.combinations = self.generate_solved_cube(size)
         if scrambled:
             self.scramble()
@@ -77,16 +77,20 @@ class Cube:
 
     def make_move(self, move: str):
         # sanity check
+
         assert move in self.get_possible_moves(), "Invalid move"
 
         if move[-1] == "'":
             self.make_move(move[:-1])
             self.make_move(move[:-1])
             self.make_move(move[:-1])
+            return
         elif move[-1] == "2":
             self.make_move(move[:-1])
             self.make_move(move[:-1])
+            return
 
+        # print("Apply move: ", move)
         # first lets deal with the rotational moves
         if move in self.faces:
             self._rotate_face(move, -1)
@@ -95,18 +99,20 @@ class Cube:
                 # L -> U -> R -> D
                 copy_of_combinations = self.combinations.copy()
                 rows = [
-                    copy_of_combinations[self.face_to_index["L"]][:, -1], #
+                    copy_of_combinations[self.face_to_index["L"]][:, -1],  #
                     copy_of_combinations[self.face_to_index["U"]][-1],
-                    copy_of_combinations[self.face_to_index["R"]][:, 0], #
+                    copy_of_combinations[self.face_to_index["R"]][:, 0],  #
                     copy_of_combinations[self.face_to_index["D"]][0],
                 ]
                 self.combinations[self.face_to_index["L"]][:, -1] = rows[3]
-                self.combinations[self.face_to_index["U"]][-1] = rows[0][::-1] # reverse
+                self.combinations[self.face_to_index["U"]][-1] = rows[0][
+                    ::-1
+                ]  # reverse
                 self.combinations[self.face_to_index["R"]][:, 0] = rows[1]
-                self.combinations[self.face_to_index["D"]][0] = rows[2][::-1] # reverse
+                self.combinations[self.face_to_index["D"]][0] = rows[2][::-1]  # reverse
+                return
 
             elif move == "R":
-                print("R")
                 # F -> U -> B -> D
                 copy_of_combinations = self.combinations.copy()
                 rows = [
@@ -117,8 +123,13 @@ class Cube:
                 ]
                 self.combinations[self.face_to_index["F"]][:, -1] = rows[3]
                 self.combinations[self.face_to_index["U"]][:, -1] = rows[0]
-                self.combinations[self.face_to_index["B"]][:, 0] = rows[1]
-                self.combinations[self.face_to_index["D"]][:, -1] = rows[2]
+                self.combinations[self.face_to_index["B"]][:, 0] = rows[1][
+                    ::-1
+                ]  # reverse
+                self.combinations[self.face_to_index["D"]][:, -1] = rows[2][
+                    ::-1
+                ]  # reverse
+                return
 
             elif move == "U":
                 # F -> L -> B -> R
@@ -133,20 +144,26 @@ class Cube:
                 self.combinations[self.face_to_index["L"]][0] = rows[0]
                 self.combinations[self.face_to_index["B"]][0] = rows[1]
                 self.combinations[self.face_to_index["R"]][0] = rows[2]
+                return
 
             elif move == "L":
                 # B -> U -> F -> D
                 copy_of_combinations = self.combinations.copy()
                 rows = [
-                    copy_of_combinations[self.face_to_index["B"]][:, -1],
+                    copy_of_combinations[self.face_to_index["B"]][:, -1],  #
                     copy_of_combinations[self.face_to_index["U"]][:, 0],
                     copy_of_combinations[self.face_to_index["F"]][:, 0],
-                    copy_of_combinations[self.face_to_index["D"]][:, 0], #
+                    copy_of_combinations[self.face_to_index["D"]][:, 0],  #
                 ]
-                self.combinations[self.face_to_index["B"]][:, -1] = rows[3][::-1] # reverse
-                self.combinations[self.face_to_index["U"]][:, 0] = rows[0]
+                self.combinations[self.face_to_index["B"]][:, -1] = rows[3][
+                    ::-1
+                ]  # reverse
+                self.combinations[self.face_to_index["U"]][:, 0] = rows[0][
+                    ::-1
+                ]  # reverse
                 self.combinations[self.face_to_index["F"]][:, 0] = rows[1]
                 self.combinations[self.face_to_index["D"]][:, 0] = rows[2]
+                return
 
             elif move == "B":
                 # R -> U -> L -> D
@@ -157,10 +174,15 @@ class Cube:
                     copy_of_combinations[self.face_to_index["L"]][:, 0],
                     copy_of_combinations[self.face_to_index["D"]][-1],
                 ]
-                self.combinations[self.face_to_index["R"]][:, -1] = rows[3]
+                self.combinations[self.face_to_index["R"]][:, -1] = rows[3][
+                    ::-1
+                ]  # reverse
                 self.combinations[self.face_to_index["U"]][0] = rows[0]
-                self.combinations[self.face_to_index["L"]][:, 0] = rows[1]
+                self.combinations[self.face_to_index["L"]][:, 0] = rows[1][
+                    ::-1
+                ]  # reverse
                 self.combinations[self.face_to_index["D"]][-1] = rows[2]
+                return
 
             elif move == "D":
                 # F -> R -> B -> L
@@ -175,6 +197,7 @@ class Cube:
                 self.combinations[self.face_to_index["R"]][-1] = rows[0]
                 self.combinations[self.face_to_index["B"]][-1] = rows[1]
                 self.combinations[self.face_to_index["L"]][-1] = rows[2]
+                return
 
         # then lets deal with the rotations
         # in rotations 2 faces are rotated
@@ -200,9 +223,107 @@ class Cube:
             self._rotate_face("D", 1)
             self._rotate_face("D", 1)
 
+            self._rotate_face("B", 1)
+            self._rotate_face("B", 1)
+
+            return
 
         elif move == "y":
-            self._rotate_face(0, 0)
+            # U and D are rotated
+            self._rotate_face("U", -1)
+            self._rotate_face("D", 1)
+            ...
+            # F -> L -> B -> R
+            copy_of_combinations = self.combinations.copy()
+            faces = [
+                copy_of_combinations[self.face_to_index["F"]],
+                copy_of_combinations[self.face_to_index["L"]],
+                copy_of_combinations[self.face_to_index["B"]],
+                copy_of_combinations[self.face_to_index["R"]],
+            ]
+            self.combinations[self.face_to_index["F"]] = faces[3]
+            self.combinations[self.face_to_index["L"]] = faces[0]
+            self.combinations[self.face_to_index["B"]] = faces[1]
+            self.combinations[self.face_to_index["R"]] = faces[2]
+            return
+
+        elif move == "z":
+            # F and B are rotated
+            self._rotate_face("F", -1)
+            self._rotate_face("B", 1)
+            ...
+            # U -> R -> D -> L
+            copy_of_combinations = self.combinations.copy()
+            faces = [
+                copy_of_combinations[self.face_to_index["U"]],
+                copy_of_combinations[self.face_to_index["R"]],
+                copy_of_combinations[self.face_to_index["D"]],
+                copy_of_combinations[self.face_to_index["L"]],
+            ]
+            self.combinations[self.face_to_index["U"]] = faces[3]
+            self.combinations[self.face_to_index["R"]] = faces[0]
+            self.combinations[self.face_to_index["D"]] = faces[1]
+            self.combinations[self.face_to_index["L"]] = faces[2]
+
+            self._rotate_face("L", -1)
+            self._rotate_face("D", -1)
+            self._rotate_face("R", -1)
+            self._rotate_face("U", -1)
+            return
+
+        # move is slicing move
+        # lets get the face and the direction
+        # the number between m and F, R, U
+        face = move[-1]
+        index = int(move[1:-1])
+        # print(face)
+        # print(index)
+
+        if face == "F":
+            # U -> R -> D -> L
+            copy_of_combinations = self.combinations.copy()
+            slices = [
+                copy_of_combinations[self.face_to_index["U"]][-index - 1],
+                copy_of_combinations[self.face_to_index["R"]][:, index],
+                copy_of_combinations[self.face_to_index["D"]][index],
+                copy_of_combinations[self.face_to_index["L"]][:, -index - 1],
+            ]
+            self.combinations[self.face_to_index["U"]][-index - 1] = slices[3][
+                ::-1
+            ]  # reverse the slice
+            self.combinations[self.face_to_index["R"]][:, index] = slices[0]
+            self.combinations[self.face_to_index["D"]][index] = slices[1][
+                ::-1
+            ]  # reverse the slice
+            self.combinations[self.face_to_index["L"]][:, -index - 1] = slices[2]
+
+        elif face == "R":
+            # U -> B -> D -> F
+            copy_of_combinations = self.combinations.copy()
+            slices = [
+                copy_of_combinations[self.face_to_index["U"]][:, index],
+                copy_of_combinations[self.face_to_index["B"]][:, index],
+                copy_of_combinations[self.face_to_index["D"]][:, index],
+                copy_of_combinations[self.face_to_index["F"]][:, index],
+            ]
+            self.combinations[self.face_to_index["U"]][:, index] = slices[3]
+            self.combinations[self.face_to_index["B"]][:, index] = slices[0][::-1]
+            self.combinations[self.face_to_index["D"]][:, index] = slices[1][::-1]
+            self.combinations[self.face_to_index["F"]][:, index] = slices[2]
+
+        elif face == "U":
+            # F -> L -> B -> R
+            copy_of_combinations = self.combinations.copy()
+            slices = [
+                copy_of_combinations[self.face_to_index["F"]][-index - 1],
+                copy_of_combinations[self.face_to_index["L"]][-index - 1],
+                copy_of_combinations[self.face_to_index["B"]][-index - 1],
+                copy_of_combinations[self.face_to_index["R"]][-index - 1],
+            ]
+            self.combinations[self.face_to_index["F"]][-index - 1] = slices[3]
+            self.combinations[self.face_to_index["L"]][-index - 1] = slices[0]
+            self.combinations[self.face_to_index["B"]][-index - 1] = slices[1]
+            self.combinations[self.face_to_index["R"]][-index - 1] = slices[2]
 
     def _rotate_face(self, face: str, direction: int):
         """
@@ -216,7 +337,7 @@ class Cube:
         face = self.combinations[face_idx]
         # lets use numpy to rotate the face 90 degrees
         rotated_face = np.rot90(face, direction)
-        self.combinations[face_idx] = rotated_face     
+        self.combinations[face_idx] = rotated_face
 
     def get_possible_moves(self):
         # get moves that are possible for any sized cube
@@ -309,7 +430,6 @@ class Cube:
                 for k in range(self.size):
                     self._print_letter(self.combinations[j][i][k])
 
-
             print(Pipes.vertical)
         print(
             Pipes.bottom_left,
@@ -341,18 +461,36 @@ class Cube:
             sep="",
         )
 
+
 if __name__ == "__main__":
     cube = Cube(size=5, show_letter=True, scrambled=False)
 
-    print("All possible moves:", len(cube.get_possible_moves()))
+    all_possible_moves = cube.get_possible_moves()
+    print("All possible moves:", len(all_possible_moves))
+    print(
+        "All possible slice_moves:",
+        [move for move in all_possible_moves if move.startswith("m")],
+    )
 
     cube.print()
-    cube.make_move("B")
 
-    cube.print()
+    print("making move F")
     cube.make_move("F")
     cube.print()
 
-    cube.make_move("L")
+    print("making move D")
+    cube.make_move("D")
     cube.print()
 
+    print("making move R")
+    cube.make_move("R")
+    cube.print()
+
+    print("making move F")
+    cube.make_move("F")
+    cube.print()
+
+    # lets test rotational moves now
+    print("making move m2U")
+    cube.make_move("m2U")
+    cube.print()
