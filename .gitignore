@@ -1,1 +1,5 @@
 *.pyc
+.venv/
+.vscode/
+
+# Python packaging
