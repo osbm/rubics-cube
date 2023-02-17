@@ -3,3 +3,5 @@
 .vscode/
 
 # Python packaging
+build/
+rubics_cube.egg-info/
