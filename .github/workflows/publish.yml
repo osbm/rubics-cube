@@ -1,0 +1,59 @@
+---
+name: Publish to PYPI and github
+
+on:
+  push:
+    paths:
+      - rubics_cube/VERSION
+      - .github/workflows/publish.yml
+
+jobs:
+  publish_package:
+    name: Publish the rubics_cube package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Generate release message
+        run: |
+          .github/release_message.sh > release_message.md
+
+      - name: Print release message
+        run: |
+          cat release_message.md
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+
+      - name: Build the package
+        run: python setup.py sdist bdist_wheel
+
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: twine upload dist/*
+
+      - name: Assign release version from rubics_cube/VERSION to Env variable
+        run: |
+          echo "version_file="$(cat rubics_cube/VERSION)"" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.version_file }}
+          release_name: Release ${{ env.version_file }}
+          draft: false
+          prerelease: false
+          body_path: release_message.md
