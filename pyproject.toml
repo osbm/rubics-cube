@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name="rubics_cube"
+authors = [
+    {name = "Osman F. Bayram", email = "osmanfbayram@gmail.com"},
+]
+description = "A Rubics Cube simulator"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["rubics", "cube", "simulator", "rubics-cube"]
+license = {file = "LICENSE"}
+dynamic = ["dependencies", "version"]
+
+[project.urls]
+# homepage = "htt"
+#documentation = "https://github.com/osbm/rubics-cube" # make mkdocs docs
+source = "https://github.com/osbm/rubics-cube"
+#download = "
+tracker = "https://github.com/osbm/rubics-cube/issues"
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+version = {file = "rubics_cube/VERSION"}
