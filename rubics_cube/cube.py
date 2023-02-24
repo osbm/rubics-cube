@@ -66,12 +66,28 @@ class Cube:
         if scrambled:
             self.scramble()
 
+    # make from_combinations function to initialize the cube from a given combination
+    @classmethod
+    def from_combinations(cls, combinations):
+        # sanity checks for the combinations
+        assert combinations.shape[0] == 6, "There should be 6 faces."
+        assert combinations.shape[1] == combinations.shape[2], "The cube should be cubic."
+        # every element chould be [w, o, g, r, b, y]
+        assert np.all(
+            np.isin(combinations, ["w", "o", "g", "r", "b", "y"])
+        ), "Every element should be in [w, o, g, r, b, y]."
+
+
+        cube = cls(size=combinations.shape[1], scrambled=False)
+        cube.combinations = combinations
+        return cube
+
     def is_solved(self):
         for face_index in range(6):
-            first_color = self.combinations[face_index][0]
+            first_color = self.combinations[face_index][0][0]
             for i in range(self.size):
                 for j in range(self.size):
-                    if self.combinations[face_index][i * self.size + j] != first_color:
+                    if self.combinations[face_index][i][j] != first_color:
                         return False
         return True
 
@@ -365,19 +381,32 @@ class Cube:
             *middle_layer_moves,
         ]
 
-    def _print_letter(self, letter: str):
-        color = self.console_colors[letter]
-        print(color, end="")
+    def shuffle(self, num_moves: int = 20):
+        """
+        Shuffle the cube
+        """
+        possible_moves = self.get_possible_moves()
+        for _ in range(num_moves):
+            move = random.choice(possible_moves)
+            self.make_move(move, print_cube=False)
+
+    def _print_letter(self, letter: str, color: bool = True):
+        if color:
+            color = self.console_colors[letter]
+            print(color, end="")
 
         if self.show_letter:
             print(letter * 2, end="")
         else:
             print("██", end="")
 
-        print(self.console_colors["reset"], end="")
+        if color:
+            print(self.console_colors["reset"], end="")
 
-    def print(self):
+    def print(self, terminal_color: bool = True):
         # draw top pipes of the top face of cube
+        assert terminal_color or self.show_letter, "you should either show letter or color, this would be invisible otherwise"
+
         print(
             " " * (self.size * 2 + 1),
             Pipes.top_left,
@@ -392,7 +421,7 @@ class Cube:
             print(" " * (self.size * 2 + 1), end="")
             print(Pipes.vertical, end="")
             for j in range(self.size):
-                self._print_letter(self.combinations[0][i][j])
+                self._print_letter(self.combinations[0][i][j], color=terminal_color)
             print(Pipes.vertical)
 
         # draw 3 faces of cube next to each other
@@ -421,7 +450,7 @@ class Cube:
             for j in range(1, 5):
                 print(Pipes.vertical, end="")
                 for k in range(self.size):
-                    self._print_letter(self.combinations[j][i][k])
+                    self._print_letter(self.combinations[j][i][k], color=terminal_color)
 
             print(Pipes.vertical)
         print(
@@ -443,7 +472,7 @@ class Cube:
             print(" " * (self.size * 2 + 1), end="")
             print(Pipes.vertical, end="")
             for j in range(self.size):
-                self._print_letter(self.combinations[5][i][j])
+                self._print_letter(self.combinations[5][i][j], color=terminal_color)
             print(Pipes.vertical)
 
         print(

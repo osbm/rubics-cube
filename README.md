@@ -3,8 +3,8 @@
 
 
 # To-Do
-- [ ] implement shuffler
-- [ ] implement an a* search algorithm to solve the cube
+- [x] implement shuffler
+- [x] implement an a* search algorithm to solve the cube
+- [x] implement heuristic functions for the a* search algorithm
 - [ ] animation generation
-- [ ] implement heuristic functions for the a* search algorithm
 - [ ] implement solvability check
